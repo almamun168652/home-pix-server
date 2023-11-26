@@ -37,6 +37,7 @@ async function run() {
 
 
         // users related api
+        //user post
         app.post('/users', async (req, res) => {
             try {
                 const user = req.body;
@@ -50,6 +51,11 @@ async function run() {
             } catch (error) {
                 console.log(error);
             }
+        })
+        // users get
+        app.get('/users' , async(req , res) => {
+            const result = await userCollection.find().toArray();
+            res.send(result);
         })
 
 
