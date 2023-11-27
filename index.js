@@ -96,10 +96,23 @@ async function run() {
         // users get 
         // only admin
         app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
-
             const result = await userCollection.find().toArray();
             res.send(result);
         })
+
+
+        // get single user for admin agent and user
+        app.get('/users/role/:email', async (req, res) => {
+            try {
+                const email = req.params?.email;
+                const query = { email: email }
+                const result = await userCollection.findOne(query);
+                res.send(result);
+            } catch (err) {
+                console.log(err)
+            }
+        })
+
 
         // admin load
         app.get('/users/admin/:email', verifyToken, async (req, res) => {
