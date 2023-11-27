@@ -35,6 +35,7 @@ async function run() {
 
 
         const userCollection = client.db("homePixDB").collection("users");
+        const propertyCollection = client.db("homePixDB").collection("properties");
 
 
 
@@ -179,6 +180,14 @@ async function run() {
             res.send(result);
         })
 
+
+
+        // property
+        app.post('/property', async(req, res) => {
+            const item = req.body;
+            const result = await propertyCollection.insertOne(item);
+            res.send(result);
+        })
 
 
 
