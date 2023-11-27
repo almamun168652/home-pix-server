@@ -75,6 +75,18 @@ async function run() {
             next();
         }
 
+        // use verify agent after verify token
+        const verifyAgent = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            const isAgent = user?.role === 'agent';
+            if (!isAgent) {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+            next();
+        }
+
 
 
 
@@ -182,8 +194,11 @@ async function run() {
 
 
 
+        // ==============================
         // property
-        app.post('/property', async(req, res) => {
+
+        // property
+        app.post('/property', verifyToken, verifyAgent, async (req, res) => {
             const item = req.body;
             const result = await propertyCollection.insertOne(item);
             res.send(result);
