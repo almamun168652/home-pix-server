@@ -245,12 +245,60 @@ async function run() {
         })
 
         // delete property
-        app.delete("/addedProperty/:id" , async (req, res) => {
+        app.delete("/addedProperty/:id", async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await propertyCollection.deleteOne(query);
             res.send(result);
         })
+
+
+
+
+
+        // Admin Only
+        // get Properties
+        app.get('/allProperties', async (req, res) => {
+            const result = await propertyCollection.find().toArray()
+            res.send(result)
+        })
+
+        // make verify
+        app.patch('/property/verified/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    status: 'verified'
+                }
+            }
+            const result = await propertyCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
+        // make rejected
+        app.patch('/property/rejected/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    status: 'rejected'
+                }
+            }
+            const result = await propertyCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
+
+
+
+
+
+
+
+
+
+
 
 
         // Send a ping to confirm a successful connection
