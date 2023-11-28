@@ -195,7 +195,7 @@ async function run() {
 
 
         // ==============================
-        // property
+        // agent
 
         // property
         app.post('/property', verifyToken, verifyAgent, async (req, res) => {
@@ -204,8 +204,45 @@ async function run() {
             res.send(result);
         })
 
+        // added properties
+        app.get('/properties', async (req, res) => {
+            try {
+                const email = req.query?.email;
+                const query = { agentEmail: email }
+                const result = await propertyCollection.find(query).toArray();
+                res.send(result);
+            } catch (err) {
+                console.log(err)
+            }
+        })
 
+        // get single properties by id
+        app.get('/addedProperties/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await propertyCollection.findOne(query);
+            res.send(result);
+        })
 
+        // // update property
+        app.patch('/properties/update/:id', async (req, res) => {
+            const item = req.body;
+            const id = req.params.id;
+            const filter = { $or: [{ _id: new ObjectId(id) }, { _id: id }] };
+            const updateDoc = {
+                $set: {
+                    propertyTitle: item.propertyTitle,
+                    propertyLocation: item.propertyLocation,
+                    propertyImage: item.propertyImage,
+                    agentName: item.agentName,
+                    agentEmail: item.agentEmail,
+                    startPrice: item.startPrice,
+                    endPrice: item.endPrice
+                }
+            }
+            const result = await propertyCollection.updateOne(filter, updateDoc);
+            res.send(result)
+        })
 
 
         // Send a ping to confirm a successful connection
