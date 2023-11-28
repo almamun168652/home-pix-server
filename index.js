@@ -36,6 +36,7 @@ async function run() {
 
         const userCollection = client.db("homePixDB").collection("users");
         const propertyCollection = client.db("homePixDB").collection("properties");
+        const wishlistCollection = client.db("homePixDB").collection("wishlist");
 
 
 
@@ -113,6 +114,14 @@ async function run() {
             res.send(result);
         })
 
+
+        // get single properties by id
+        app.get('/wishlist/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await wishlistCollection.findOne(query);
+            res.send(result);
+        })
 
         // get single user for admin agent and user
         app.get('/users/role/:email', async (req, res) => {
@@ -204,6 +213,14 @@ async function run() {
             res.send(result);
         })
 
+
+        app.post('/wishlist', verifyToken, async (req, res) => {
+            const item = req.body;
+            const result = await wishlistCollection.insertOne(item);
+            res.send(result);
+        })
+
+
         // added properties
         app.get('/properties', async (req, res) => {
             try {
@@ -253,6 +270,12 @@ async function run() {
         })
 
 
+        // user only
+        // get wishlist
+        app.get('/wishlist', async (req, res) => {
+            const result = await wishlistCollection.find().toArray();
+            res.send(result);
+        })
 
 
 
@@ -262,6 +285,22 @@ async function run() {
             const result = await propertyCollection.find().toArray()
             res.send(result)
         })
+
+        app.get('/verifiedProperties', async (req, res) => {
+            const query = { status: 'verified' }
+            const result = await propertyCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        app.get('/verifiedProperty/details/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await propertyCollection.findOne(query);
+            res.send(result);
+        })
+
+
+
 
         // make verify
         app.patch('/property/verified/:id', async (req, res) => {
