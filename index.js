@@ -267,6 +267,33 @@ async function run() {
             }
         })
 
+        // request update
+        // make verify
+        app.patch('/request/accept/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    status: 'accepted'
+                }
+            }
+            const result = await offeredCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
+        app.patch('/request/reject/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    status: 'rejected'
+                }
+            }
+            const result = await offeredCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
+
         // get single properties by id
         app.get('/addedProperties/:id', async (req, res) => {
             const id = req.params.id;
