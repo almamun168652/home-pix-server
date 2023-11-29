@@ -38,6 +38,7 @@ async function run() {
         const propertyCollection = client.db("homePixDB").collection("properties");
         const wishlistCollection = client.db("homePixDB").collection("wishlist");
         const offeredCollection = client.db("homePixDB").collection("offered");
+        const reviewCollection = client.db("homePixDB").collection("review");
 
 
 
@@ -112,6 +113,12 @@ async function run() {
         // only admin
         app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
             const result = await userCollection.find().toArray();
+            res.send(result);
+        })
+
+        // only admin
+        app.get('/allReviews', verifyToken, verifyAdmin, async (req, res) => {
+            const result = await reviewCollection.find().toArray();
             res.send(result);
         })
 
@@ -221,11 +228,40 @@ async function run() {
             res.send(result);
         })
 
+
+        app.post('/review', verifyToken, async (req, res) => {
+            const item = req.body;
+            const result = await reviewCollection.insertOne(item);
+            res.send(result);
+        })
+
         app.post('/offered', verifyToken, async (req, res) => {
             const item = req.body;
             const result = await offeredCollection.insertOne(item);
             res.send(result);
         })
+
+        // my review
+        app.get('/myReview', async (req, res) => {
+            try {
+                const email = req.query?.email;
+                console.log(email);
+                const query = { userEmail: email }
+                const result = await reviewCollection.find(query).toArray();
+                res.send(result);
+            } catch (err) {
+                console.log(err)
+            }
+        })
+
+        // delete property
+        app.delete("/review/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await reviewCollection.deleteOne(query);
+            res.send(result);
+        })
+
 
 
 
