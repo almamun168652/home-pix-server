@@ -39,6 +39,7 @@ async function run() {
         const wishlistCollection = client.db("homePixDB").collection("wishlist");
         const offeredCollection = client.db("homePixDB").collection("offered");
         const reviewCollection = client.db("homePixDB").collection("review");
+        const advertiseCollection = client.db("homePixDB").collection("advertise");
 
 
 
@@ -201,6 +202,23 @@ async function run() {
             const result = await userCollection.updateOne(filter, updatedDoc);
             res.send(result);
         })
+
+
+        // mark fraud
+        app.patch('/users/fraud/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    role: 'fraud'
+                }
+            }
+            const result = await userCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
+
+
         // user delete
         app.delete('/users/:id', async (req, res) => {
             const id = req.params.id;
@@ -425,11 +443,46 @@ async function run() {
             res.send(result);
         })
 
+        app.post('/advertise', verifyToken, async (req, res) => {
+            const item = req.body;
+            const count = await advertiseCollection.estimatedDocumentCount();
+            if (count < 6) {
+                const result = await advertiseCollection.insertOne(item);
+                res.send(result);
+            }else{
+                res.send({message: 'You can not add advertise greater than 6 items'});
+                console.log('You can not add advertise greater than 6 items');
+            }
+
+        })
+
+        // delete property
+        app.delete("/advertise/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { advertiseId: id }
+            const result = await advertiseCollection.deleteOne(query);
+            res.send(result);
+        })
 
 
 
 
 
+        // ===================
+        app.get('/fraudAgentProperties/:email', async (req, res) => {
+
+            const email = req.params.email;
+            const query = { agentEmail: email, status: 'verified' }
+            const result = await propertyCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        app.post('/fraudPropertyCick', async (req, res) => {
+            const idsArray = req.body;
+            const query = { _id: { $in: idsArray.map(id => new ObjectId(id)) } };
+            const result = await propertyCollection.deleteMany(query);
+            res.send(result);
+        })
 
 
 
