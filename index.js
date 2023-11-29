@@ -37,6 +37,7 @@ async function run() {
         const userCollection = client.db("homePixDB").collection("users");
         const propertyCollection = client.db("homePixDB").collection("properties");
         const wishlistCollection = client.db("homePixDB").collection("wishlist");
+        const offeredCollection = client.db("homePixDB").collection("offered");
 
 
 
@@ -220,6 +221,27 @@ async function run() {
             res.send(result);
         })
 
+        app.post('/offered', verifyToken, async (req, res) => {
+            const item = req.body;
+            const result = await offeredCollection.insertOne(item);
+            res.send(result);
+        })
+
+
+
+        // added properties
+        app.get('/myBought', async (req, res) => {
+            try {
+                const email = req.query?.email;
+                console.log(email);
+                const query = { buyerEmail: email }
+                const result = await offeredCollection.find(query).toArray();
+                res.send(result);
+            } catch (err) {
+                console.log(err)
+            }
+        })
+
 
         // added properties
         app.get('/properties', async (req, res) => {
@@ -227,6 +249,18 @@ async function run() {
                 const email = req.query?.email;
                 const query = { agentEmail: email }
                 const result = await propertyCollection.find(query).toArray();
+                res.send(result);
+            } catch (err) {
+                console.log(err)
+            }
+        })
+
+        // added properties
+        app.get('/myRequested', async (req, res) => {
+            try {
+                const email = req.query?.email;
+                const query = { agentEmail: email }
+                const result = await offeredCollection.find(query).toArray();
                 res.send(result);
             } catch (err) {
                 console.log(err)
