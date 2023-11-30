@@ -9,7 +9,9 @@ const port = process.env.PORT || 5000;
 
 
 // Middle Were 
-app.use(cors());
+app.use(cors({
+    origin: ['https://aback-spoon.surge.sh']
+}));
 app.use(express.json());
 
 
@@ -479,12 +481,20 @@ async function run() {
 
         // ===================
         app.get('/fraudAgentProperties/:email', async (req, res) => {
-
             const email = req.params.email;
             const query = { agentEmail: email, status: 'verified' }
             const result = await propertyCollection.find(query).toArray();
             res.send(result);
         })
+
+        // ===================
+        app.get('/soldProperties', async (req, res) => {
+            const email = req.query?.email;
+            const query = { agentEmail: email, status: 'bought' }
+            const result = await offeredCollection.find(query).toArray();
+            res.send(result);
+        })
+
 
         app.post('/fraudPropertyCick', async (req, res) => {
             const idsArray = req.body;
