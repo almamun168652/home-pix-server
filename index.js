@@ -465,6 +465,13 @@ async function run() {
         })
 
 
+        // advertise get for home page
+        app.get('/bestCollection', async (req, res) => {
+            const result = await advertiseCollection.find().toArray();
+            res.send(result);
+        })
+
+
 
 
 
