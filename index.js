@@ -4,6 +4,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require("cors");
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const stripe = require("stripe")(process.env.PAYMENT_KEY_BACKEND)
 const port = process.env.PORT || 5000;
 
 
@@ -40,6 +41,7 @@ async function run() {
         const offeredCollection = client.db("homePixDB").collection("offered");
         const reviewCollection = client.db("homePixDB").collection("review");
         const advertiseCollection = client.db("homePixDB").collection("advertise");
+        const paymentCollection = client.db("homePixDB").collection("payment");
 
 
 
@@ -449,8 +451,8 @@ async function run() {
             if (count < 6) {
                 const result = await advertiseCollection.insertOne(item);
                 res.send(result);
-            }else{
-                res.send({message: 'You can not add advertise greater than 6 items'});
+            } else {
+                res.send({ message: 'You can not add advertise greater than 6 items' });
                 console.log('You can not add advertise greater than 6 items');
             }
 
@@ -490,6 +492,83 @@ async function run() {
             const result = await propertyCollection.deleteMany(query);
             res.send(result);
         })
+
+        // ===================
+        app.get('/fraudAdvertise/:email', async (req, res) => {
+
+            const email = req.params.email;
+            const query = { agentEmail: email, status: 'verified' }
+            const result = await advertiseCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        app.post('/fraudAdvertiseCick', async (req, res) => {
+            const idsArray = req.body;
+            const query = { _id: { $in: idsArray.map(id => new ObjectId(id)) } };
+            const result = await advertiseCollection.deleteMany(query);
+            res.send(result);
+        })
+
+        // 
+
+
+
+        // ===========latest reviw ===========
+        app.get('/latestReview', async (req, res) => {
+            const recentReviews = await reviewCollection.find().sort({ _id: -1 }).limit(3).toArray();
+            res.send(recentReviews);
+        })
+
+
+        // ==================================
+        app.get('/goPay/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const query = { _id: new ObjectId(id) };
+            const result = await offeredCollection.findOne(query);
+            res.send(result);
+        })
+
+
+
+        // post :: payment gateway
+        app.post('/create-payment-intent', async (req, res) => {
+            const { price } = req.body;
+            const amount = parseInt(price * 100);
+            // console.log(amount, 'amount inside the intent')
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            })
+        });
+
+        //  post :: payments and user data
+        app.put('/payments', async (req, res) => {
+            const payment = req.body;
+            console.log(payment);
+            // const result = await paymentCollection.insertOne(payment);
+            // res.send(result);
+
+            const filter = { _id: new ObjectId(payment.propertyId) }
+            const updatedDoc = {
+                $set: {
+                    status: payment.status,
+                    transactionId: payment.transtionId,
+                }
+            }
+            const result = await offeredCollection.updateOne(filter , updatedDoc);
+            res.send(result);
+
+
+        })
+
+
 
 
 
